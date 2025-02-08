@@ -2,6 +2,7 @@ import { Container, Typography, CircularProgress } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import PatientTable from "../PatientTable";
 import axios from "axios";
+import FileUploadArea from "./FileUploadArea";
 
 export default function Upload() {
   const headers = ["Patient Name", "Patient Birth Date", "Series Description"];
@@ -49,6 +50,11 @@ export default function Upload() {
     fetchData();
   }, []);
 
+  async function handleFileUpload() {
+    setTimeout(() => {
+      fetchData();
+    }, 500);
+  }
 
   function flattenData(data) {
     if (!data || !Array.isArray(data.files)) {
@@ -97,6 +103,7 @@ export default function Upload() {
       >
         File Scanner
       </Typography>
+      <FileUploadArea handleFileUpload={handleFileUpload}/>
       <Typography
         variant="h4"
         align="center"
