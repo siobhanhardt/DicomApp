@@ -1,6 +1,7 @@
 import { CircularProgress, Container, Typography, Table, TableCell, TableHead, TableRow, TableBody } from "@mui/material";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import PatientTable from "../PatientTable";
 
 export default function Download() {
   const headers = [
@@ -21,10 +22,8 @@ export default function Download() {
     files {
       FilePath
    		series {
-        idSeries
         SeriesName
         patient {
-          idPatient
           Name
           CreatedDate
         }
@@ -32,7 +31,7 @@ export default function Download() {
     }
   }
 `;
-  console.log(files)
+
   async function fetchGraphQL(query) {
     try {
       const response = await axios.post(GRAPHQL_URL, { query });
@@ -80,7 +79,6 @@ export default function Download() {
       const flattened = {
         ...file.series.patient, 
         ...file.series, 
-        FilePath: file.FilePath, 
       };
 
       if (flattened.CreatedDate) {
@@ -115,24 +113,7 @@ export default function Download() {
       >
         Download
       </Typography>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {headers.map((header, index) => (
-              <TableCell key={index}>{header}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {files.map((file, index) => (
-            <TableRow key={index}>
-              <TableCell>{file.Name}</TableCell>
-              <TableCell>{file.CreatedDate}</TableCell>
-              <TableCell>{file.SeriesName}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <PatientTable headers={headers} sampleData={files}/>
     </Container>
   );
 }
