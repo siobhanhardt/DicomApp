@@ -1,9 +1,44 @@
 import numpy as np
+import requests
+from datetime import datetime
 from PIL import Image
 from numpy import maximum, ndarray
 from pydicom import dcmread, FileDataset
 from pydicom.multival import MultiValue
 from pydicom.valuerep import PersonName
+
+API_URL = "http://localhost:4000/api/upload-dicom"
+
+def send_to_nodejs(filepath):
+
+    metadata = convert_dicom(filepath)
+
+    # print("Extracted Metadata Before Sending:")
+    # for key, value in metadata.items():
+    #     print(f"{key}: {value}")
+
+    response = requests.post(API_URL, json=metadata)
+    
+    if response.status_code == 200:
+        print("Successfully uploaded to Node.js")
+    else:
+        print(f"Error: {response.text}")
+
+def format_date(dicom_date):
+    formats = [
+        "%Y%m%d",  
+        "%m/%Y",    
+        "%Y"        
+    ]
+    
+    for date_format in formats:
+        try:           
+            parsed_date = datetime.strptime(dicom_date, date_format)           
+            return parsed_date.isoformat()  
+        except ValueError:           
+            continue
+    
+    return None
 
 def getDicomValue(ds,name):
     value = ds.get(name)
@@ -14,14 +49,14 @@ def getDicomValue(ds,name):
     # Convert NumPy array to list
         return array.tolist()
     if isinstance(value, PersonName):
-        return value.formatted('format_str') # Adjust as needed
+        return str(value) # Adjust as needed
     if isinstance(value, np.ndarray):
         return value.tolist() # Convert NumPy arrays to lists
     if isinstance(value, (np.floating, np.integer)):
         return value.item() # Convert NumPy scalar to native Python type
     return value
 
-def convert_dicom(filepath, output_type="json", with_metadata=False):
+def convert_dicom(filepath, output_type="json", with_metadata=True):
     ds = dcmread(filepath)
 
     pixel_data = ds.pixel_array
@@ -60,44 +95,21 @@ def convert_dicom(filepath, output_type="json", with_metadata=False):
         SeriesNumber = getDicomValue(ds,'SeriesNumber')
         NumberOfFrames = getDicomValue(ds,'NumberOfFrames')
         StudyDescription = getDicomValue(ds,'StudyDescription')
-        output_json = {
-        "slices":[{
-        "image": pixel_data_uint8_scaled.tolist(),
-        "InstanceNumber": InstanceNumber,
-        "SliceLocation": SliceLocation,
-        "ImageOrientationPatient": ImageOrientationPatient,
-        "ImagePositionPatient": ImagePositionPatient,
-        "filepath": filepath,
-        }],
-        "width": ds.Columns,
-        "height": ds.Rows,
-        "minimum": float(minimum),
-        "maximum": float(maximum),
+        PatientBirthDate = format_date(getDicomValue(ds, 'PatientBirthDate'))
+        
+        
+        metadata = {
         "Modality":Modality,
         "SeriesDescription":SeriesDescription,
         "PatientName":PatientName,
+        "PatientBirthDate": PatientBirthDate,
         "StudyDate":StudyDate,
-        "StudyTime":StudyTime,
-        "SliceThickness":SliceThickness,
-        "SpacingBetweenSlices":SpacingBetweenSlices,
-        "ProtocolName":ProtocolName,
-        "RepetitionTime": RepetitionTime,
-        "EchoTime": EchoTime,
-        "MagneticFieldStrength": MagneticFieldStrength,
-        "SeriesNumber": SeriesNumber,
-        "NumberOfFrames": NumberOfFrames,
-        "PixelSpacing": PixelSpacing,
-        "ImageType": ImageType,
-        "StudyDescription":StudyDescription
+        "StudyDescription":StudyDescription,
+        "FilePath":filepath
         }
-    if with_metadata:
-        output_json["metadata"] = ds.to_json_dict()
-        return output_json
-    return {
-    "image": pixel_data_uint8_scaled.tolist(),
-    "InstanceNumber": InstanceNumber,
-    "SliceLocation": SliceLocation,
-    "ImageOrientationPatient": ImageOrientationPatient,
-    "ImagePositionPatient": ImagePositionPatient,
-    "filepath": filepath,
-    }
+    return metadata
+
+
+if __name__ == "__main__":
+    filepath = "G:\DicomApp\pydicom\MR-IMG-301-1-134.dcm"  # Replace with the actual file path
+    send_to_nodejs(filepath)

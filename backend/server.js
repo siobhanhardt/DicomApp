@@ -10,8 +10,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-
 const schema = buildSchema(`
     type Patient {
         idPatient: ID!
@@ -53,21 +51,102 @@ const schema = buildSchema(`
     }
 `);
 
-// GraphQL Resolvers
 const root = {
   patients: async () => await Patient.findAll(),
   studies: async () => await Study.findAll(),
   series: async () => await Series.findAll(),
-  files: async () => await Files.findAll(),
+  files: async () => await File.findAll(),
   modality: async () => await Modality.findAll(),
 };
 
-// Set up GraphQL API
 app.use("/graphql", graphqlHTTP({ schema, rootValue: root, graphiql: true }));
 
-// Start Server
+app.post("/api/upload-dicom", async (req, res) => { 
+  try {
+    const dicomMetadata = req.body;
+    // const response = await axios.post(
+    //   "http://python-service:5000/process-dicom",
+    //   {
+    //     filePath: filePath,
+    //   }
+    // );
+
+    //const dicomMetadata = JSON.parse(response.data);
+
+    if (!dicomMetadata.PatientName) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing PatientName in DICOM metadata",
+      });
+    }
+
+    let patient = await Patient.findOne({
+      where: { Name: dicomMetadata.PatientName },
+    });
+
+    if (!patient) {
+      patient = await Patient.create({
+        Name: dicomMetadata.PatientName,
+        CreatedDate: dicomMetadata.PatientBirthDate
+          ? new Date(dicomMetadata.PatientBirthDate).toISOString()
+          : null,
+      });
+    }
+
+    let modality = await Modality.findOne({
+      where: { Name: dicomMetadata.ModalityName },
+    });
+    if (!modality) {
+      modality = await Modality.create({
+        Name: dicomMetadata.ModalityName,
+      });
+    }
+
+    let study = await Study.findOne({
+      where: { StudyName: dicomMetadata.StudyDescription },
+    });
+    if (!study) {
+      study = await Study.create({
+        idPatient: patient.idPatient,
+        StudyName: dicomMetadata.StudyDescription,
+        CreatedDate: dicomMetadata.StudyDate,
+      });
+    }
+
+    let series = await Series.findOne({
+      where: { SeriesName: dicomMetadata.SeriesDescription },
+    });
+    if (!series) {
+      series = await Series.create({
+        idPatient: patient.idPatient,
+        idStudy: study.idStudy,
+        idModality: modality.idModality,
+        SeriesName: dicomMetadata.SeriesDescription,
+        CreatedDate: dicomMetadata.StudyDate,
+      });
+    }
+
+    const file = await File.create({
+      idPatient: patient.idPatient,
+      idStudy: study.idStudy,
+      idSeries: series.idSeries,
+      FilePath: dicomMetadata.filePath,
+      CreatedDate: dicomMetadata.StudyDate,
+    });
+
+    res.json({
+      success: true,
+      message: `File processed successfully.`,
+      filePath: dicomMetadata.filePath,
+    });
+  } catch (error) {
+    console.error("Error processing DICOM file:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.listen(4000, () => {
   console.log(
-    "🚀 Node.js GraphQL API running at http://localhost:4000/graphql"
+    "Node.js GraphQL API running at http://localhost:4000/graphql"
   );
 });
