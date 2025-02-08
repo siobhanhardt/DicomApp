@@ -31,6 +31,7 @@ const schema = buildSchema(`
         idModality: Int!
         SeriesName: String
         CreatedDate: String
+        patient: Patient
     }
 
     type File {
@@ -41,6 +42,7 @@ const schema = buildSchema(`
         FilePath: String
         ImagePath: String
         CreatedDate: String
+        series: Series
     }
 
     type Query {
@@ -55,7 +57,31 @@ const root = {
   patients: async () => await Patient.findAll(),
   studies: async () => await Study.findAll(),
   series: async () => await Series.findAll(),
-  files: async () => await File.findAll(),
+  files: async () => {
+    try {
+      const filesWithDetails = await File.findAll({
+        include: [
+          {
+            model: Series,
+            as: "series",
+            attributes: ["SeriesName", "idSeries"], 
+            include: [
+              {
+                model: Patient, 
+                as: "patient", 
+                attributes: ["idPatient", "Name", "CreatedDate"], 
+              },
+            ],
+          },
+        ],
+      });
+
+      return filesWithDetails;
+    } catch (error) {
+      console.error("Error fetching files with series and patient:", error);
+      return [];
+    }
+  },
   modality: async () => await Modality.findAll(),
 };
 
@@ -80,9 +106,7 @@ app.post("/api/upload-dicom", async (req, res) => {
       });
     }
 
-    let patient = await Patient.findOne({
-      where: { Name: dicomMetadata.PatientName },
-    });
+    let patient = null
 
     if (!patient) {
       patient = await Patient.create({
@@ -94,11 +118,11 @@ app.post("/api/upload-dicom", async (req, res) => {
     }
 
     let modality = await Modality.findOne({
-      where: { Name: dicomMetadata.ModalityName },
+      where: { Name: dicomMetadata.Modality },
     });
     if (!modality) {
       modality = await Modality.create({
-        Name: dicomMetadata.ModalityName,
+        Name: dicomMetadata.Modality,
       });
     }
 
@@ -130,14 +154,14 @@ app.post("/api/upload-dicom", async (req, res) => {
       idPatient: patient.idPatient,
       idStudy: study.idStudy,
       idSeries: series.idSeries,
-      FilePath: dicomMetadata.filePath,
+      FilePath: dicomMetadata.FilePath,
       CreatedDate: dicomMetadata.StudyDate,
     });
 
     res.json({
       success: true,
       message: `File processed successfully.`,
-      filePath: dicomMetadata.filePath,
+      filePath: dicomMetadata.FilePath,
     });
   } catch (error) {
     console.error("Error processing DICOM file:", error);

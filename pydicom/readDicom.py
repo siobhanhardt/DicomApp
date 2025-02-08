@@ -13,9 +13,9 @@ def send_to_nodejs(filepath):
 
     metadata = convert_dicom(filepath)
 
-    # print("Extracted Metadata Before Sending:")
-    # for key, value in metadata.items():
-    #     print(f"{key}: {value}")
+    print("Extracted Metadata Before Sending:")
+    for key, value in metadata.items():
+        print(f"{key}: {value}")
 
     response = requests.post(API_URL, json=metadata)
     
@@ -84,7 +84,7 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
         SeriesDescription = getDicomValue(ds,'SeriesDescription')
         ProtocolName = getDicomValue(ds,'ProtocolName')
         PatientName = getDicomValue(ds,'PatientName')
-        StudyDate = getDicomValue(ds,'StudyDate')
+        StudyDate = format_date(getDicomValue(ds,'StudyDate'))
         StudyTime = getDicomValue(ds,'StudyTime')
         SliceThickness = getDicomValue(ds,'SliceThickness')
         SpacingBetweenSlices = getDicomValue(ds,'SpacingBetweenSlices')

@@ -46,7 +46,7 @@ const File = sequelize.define("File", {
   idStudy: { type: DataTypes.INTEGER, allowNull: false },
   idSeries: { type: DataTypes.INTEGER, allowNull: false },
   FilePath: { type: DataTypes.STRING, allowNull: false },
-  ImagePath: { type: DataTypes.STRING, allowNull: false },
+  ImagePath: { type: DataTypes.STRING, allowNull: true },
   CreatedDate: { type: DataTypes.DATE, allowNull: true },
 },
 {
@@ -64,13 +64,13 @@ Modality.hasMany(Series, {foreignKey: "idModality"})
 
 Study.belongsTo(Patient, {foreignKey: "idPatient"});
 
-Series.belongsTo(Patient, { foreignKey: "idPatient"});
+Series.belongsTo(Patient, { foreignKey: "idPatient", as: 'patient' });
 Series.belongsTo(Study, { foreignKey: "idStudy" });
 Series.belongsTo(Modality, { foreignKey: "idModality" });
 
 File.belongsTo(Patient, { foreignKey: "idPatient" });
 File.belongsTo(Study, { foreignKey: "idStudy" });
-File.belongsTo(Series, { foreignKey: "idSeries"});
+File.belongsTo(Series, { foreignKey: "idSeries", as: 'series' });
 
 // Sync database
 sequelize.sync({ alter: true });
