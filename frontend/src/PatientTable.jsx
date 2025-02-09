@@ -53,11 +53,8 @@ function handleDownload(filePath) {
                       color="#696969"
                       aria-label="pageview"
                       onClick={() => {
-                        const imageUrl = `http://localhost:4000/uploads/${row.ImagePath.split(
-                          "/"
-                        ).pop()}`;
-                        console.log(imageUrl);
-                        handleViewerPageChange(imageUrl);
+                        const imageUrl = `http://localhost:4000/uploads/${row.ImagePath.split("/").pop()}`;
+                        handleViewerPageChange(imageUrl, [row.idSeries, row.idPatient])
                       }}
                     >
                       <PageviewIcon />

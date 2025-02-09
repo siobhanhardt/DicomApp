@@ -62,6 +62,7 @@ const schema = buildSchema(`
         studies: [Study]
         series: [Series]
         files: [File]
+        images(idSeries: Int, idPatient: Int): [File]
     }
 `);
 
@@ -93,6 +94,16 @@ const root = {
       console.error("Error fetching files with series and patient:", error);
       return [];
     }
+  },
+  images: async ({ idSeries, idPatient }) => {
+    const whereClause = {};
+    if (typeof idSeries === "number") {
+      whereClause.idSeries = idSeries;
+    }
+    if (typeof idPatient === "number") {
+      whereClause.idPatient = idPatient;
+    }
+    return await File.findAll({ where: whereClause });
   },
   modality: async () => await Modality.findAll(),
 };
