@@ -6,6 +6,8 @@ from numpy import maximum, ndarray
 from pydicom import dcmread, FileDataset
 from pydicom.multival import MultiValue
 from pydicom.valuerep import PersonName
+import matplotlib.pyplot as plt
+import os
 
 API_URL = "http://localhost:4000/api/upload-dicom"
 
@@ -71,12 +73,12 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
     minimum = np.amin(pixel_data_float)
     # Rescaling grey scale between 0-255
     pixel_data_float_scaled = np.maximum(pixel_data_float, 0) / pixel_data_float.max(initial=0) * 255.0
-
     pixel_data_uint8_scaled = np.uintc(pixel_data_float_scaled)
-    SliceLocation = getDicomValue(ds,'SliceLocation')
-    ImageOrientationPatient = getDicomValue(ds,'ImageOrientationPatient')
-    ImagePositionPatient = getDicomValue(ds,'ImagePositionPatient')
-    InstanceNumber = getDicomValue(ds,'InstanceNumber')
+
+    image_path = os.path.join("/app/uploads", f"{ds.SOPInstanceUID}.png")  # Save as PNG with SOPInstanceUID as filename
+    plt.imsave(image_path, pixel_data_uint8_scaled, cmap='gray')  # Save the image in grayscale
+
+
     if output_type == "json":
     # Convert array to list
         PixelSpacing = getDicomValue(ds,'PixelSpacing')
@@ -105,7 +107,8 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
         "PatientBirthDate": PatientBirthDate,
         "StudyDate":StudyDate,
         "StudyDescription":StudyDescription,
-        "FilePath":filepath
+        "FilePath":filepath,
+        "ImagePath":image_path
         }
     return metadata
 

@@ -9,9 +9,15 @@ import Viewer from "./Viewer/Viewer";
 function App() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState("upload");
+  const [imageUrl, setImageUrl] = useState("");
 
   function toggleDrawer() {
     setOpen(!open);
+  }
+
+  function handleViewerPageChange(imageUrl) {
+    setPage("viewer");
+    setImageUrl(imageUrl);
   }
 
   function renderPage() {
@@ -19,9 +25,9 @@ function App() {
       case "upload":
         return <Upload />;
       case "download":
-        return <Download/>;
+        return <Download handleViewerPageChange={handleViewerPageChange}/>;
       case "viewer":
-        return <Viewer/>
+        return <Viewer imageUrl={imageUrl}/>
       default:
         return <Upload />;
     }

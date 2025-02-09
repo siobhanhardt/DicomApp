@@ -99,6 +99,8 @@ const root = {
 
 app.use("/graphql", graphqlHTTP({ schema, rootValue: root, graphiql: true }));
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -178,6 +180,7 @@ app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
           idStudy: study.idStudy,
           idSeries: series.idSeries,
           FilePath: dicomMetadata.FilePath,
+          ImagePath: dicomMetadata.ImagePath,
           CreatedDate: dicomMetadata.StudyDate,
         });
       } catch (error) {

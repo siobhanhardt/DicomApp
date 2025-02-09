@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import PatientTable from "../PatientTable";
 
-export default function Download() {
+export default function Download({ handleViewerPageChange }) {
   const headers = [
     "Patient Name",
     "Patient Birth Date",
@@ -21,6 +21,7 @@ export default function Download() {
   query {
     files {
       FilePath
+      ImagePath
    		series {
         SeriesName
         patient {
@@ -79,6 +80,8 @@ export default function Download() {
       const flattened = {
         ...file.series.patient, 
         ...file.series, 
+        FilePath: file.FilePath, 
+        ImagePath: file.ImagePath
       };
 
       if (flattened.CreatedDate) {
@@ -113,7 +116,7 @@ export default function Download() {
       >
         Download
       </Typography>
-      <PatientTable headers={headers} sampleData={files}/>
+      <PatientTable headers={headers} sampleData={files} handleViewerPageChange={handleViewerPageChange}/>
     </Container>
   );
 }
