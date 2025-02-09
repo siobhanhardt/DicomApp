@@ -1,9 +1,11 @@
-import { CircularProgress, Container, Typography, Table, TableCell, TableHead, TableRow, TableBody } from "@mui/material";
+import { CircularProgress, Container, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import PatientTable from "../PatientTable";
 
 export default function Download({ handleViewerPageChange }) {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const headers = [
     "Patient Name",
     "Patient Birth Date",
@@ -16,7 +18,7 @@ export default function Download({ handleViewerPageChange }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const GRAPHQL_URL = "http://localhost:4000/graphql";
+  const GRAPHQL_URL = `${apiUrl}/graphql`;
   const GET_FILES = `
 query {
   files {
@@ -46,7 +48,7 @@ query {
   async function fetchGraphQL(query) {
     try {
       const response = await axios.post(GRAPHQL_URL, { query });
-      return response.data.data; 
+      return response.data.data;
     } catch (error) {
       console.error("GraphQL Request Error:", error);
       return null;
@@ -61,7 +63,6 @@ query {
 
         if (filesData) {
           const flattened = flattenData(filesData);
-          console.log(flattened);
           setFiles(flattened);
         } else {
           setError("Failed to fetch data.");
@@ -94,10 +95,12 @@ query {
         SeriesName: file.series.SeriesName,
         StudyName: file.series.study.StudyName,
         StudyDate: file.series.study.CreatedDate,
-        ModalityName: file.series.modality.Name,       
-        FilePath: file.FilePath, 
+        ModalityName: file.series.modality.Name,
+        FilePath: file.FilePath,
         ImagePath: file.ImagePath,
-        InstanceNumber: file.InstanceNumber
+        InstanceNumber: file.InstanceNumber,
+        idPatient: Number(file.series.patient.idPatient),
+        idSeries: Number(file.series.idSeries),
       };
 
       if (flattened.CreatedDate) {
@@ -110,14 +113,10 @@ query {
           parseInt(flattened.StudyDate)
         ).toLocaleDateString();
       }
-      delete flattened.patient;
-
       return flattened;
     });
   }
 
-  if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
   return (
     <Container
       sx={{
@@ -136,7 +135,17 @@ query {
       >
         Download
       </Typography>
-      <PatientTable headers={headers} sampleData={files} handleViewerPageChange={handleViewerPageChange}/>
+      {loading ? (
+        <CircularProgress />
+      ) : error ? (
+        <Typography color="error">{error}</Typography>
+      ) : (
+        <PatientTable
+          headers={headers}
+          sampleData={files}
+          handleViewerPageChange={handleViewerPageChange}
+        />
+      )}
     </Container>
   );
 }

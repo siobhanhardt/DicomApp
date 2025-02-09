@@ -243,5 +243,5 @@ app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
 });
 
 app.listen(4000, () => {
-  console.log("Node.js GraphQL API running at http://localhost:4000/graphql");
+  console.log("Node.js server is running");
 });

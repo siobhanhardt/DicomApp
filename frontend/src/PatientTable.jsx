@@ -12,14 +12,13 @@ import {
 import DownloadIcon from "@mui/icons-material/Download";
 import PageviewIcon from "@mui/icons-material/Pageview";
 
-export default function PatientTable({
-  headers,
-  sampleData,
-  handleViewerPageChange,
-}) {
+export default function PatientTable({ headers, sampleData, handleViewerPageChange,}) {
+
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   function handleDownload(filePath) {
     const fileName = filePath.split("/").pop();
-    const downloadUrl = `http://localhost:4000/uploads/${fileName}`;
+    const downloadUrl = `${apiUrl}/uploads/${fileName}`;
     const link = document.createElement("a");
     link.href = downloadUrl;
     link.download = fileName;
@@ -38,6 +37,7 @@ export default function PatientTable({
             ))}
           </TableRow>
         </TableHead>
+        {sampleData &&
         <TableBody>
           {sampleData.map((row, rowIndex) => (
             <TableRow key={rowIndex}>
@@ -55,7 +55,7 @@ export default function PatientTable({
                       color="#696969"
                       aria-label="pageview"
                       onClick={() => {
-                        const imageUrl = `http://localhost:4000/uploads/${row.ImagePath.split(
+                        const imageUrl = `${apiUrl}/uploads/${row.ImagePath.split(
                           "/"
                         ).pop()}`;
                         handleViewerPageChange(imageUrl, row);
@@ -79,7 +79,7 @@ export default function PatientTable({
               )}
             </TableRow>
           ))}
-        </TableBody>
+        </TableBody>}
       </Table>
     </TableContainer>
   );

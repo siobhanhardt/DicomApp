@@ -7,14 +7,15 @@ export default function Viewer({
   onThumbnailClick,
   imageData,
 }) {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const [currentImageIndex, setCurrentImageIndex] = useState(
     thumbnails.findIndex(
       (thumb) =>
-        `http://localhost:4000/uploads/${thumb.ImagePath.split("/").pop()}` ===
-        imageUrl
+        `${apiUrl}/uploads/${thumb.ImagePath.split("/").pop()}` === imageUrl
     )
   );
-
+  console.log(thumbnails);
   const handleThumbnailClick = (imagePath, index) => {
     setCurrentImageIndex(index); // Update the current image index
     onThumbnailClick(imagePath); // Call the provided onThumbnailClick callback
@@ -38,7 +39,7 @@ export default function Viewer({
       >
         {thumbnails && thumbnails.length > 0 ? (
           thumbnails.map((thumb, index) => {
-            const imagePath = `http://localhost:4000/uploads/${thumb.ImagePath.split(
+            const imagePath = `${apiUrl}/uploads/${thumb.ImagePath.split(
               "/"
             ).pop()}`;
             return (
@@ -72,14 +73,30 @@ export default function Viewer({
         }}
         maxWidth={false}
       >
-        <Box sx={{ position: "absolute", color: "white", left: 10, top: 10 }}>
-          <Typography variant="body2">PatientName: {imageData.PatientName}</Typography>
-          <Typography variant="body2">PatientBirthDate: {imageData.CreatedDate}</Typography>
-        </Box>
-        <Box sx={{ position: "absolute", color: "white", right: 10, top: 10 }}>
-          <Typography variant="body2">StudyName: {imageData.StudyName}</Typography>
-          <Typography variant="body2">SeriesName: {imageData.SeriesName}</Typography>
-        </Box>
+        {imageData && (
+          <>
+            <Box
+              sx={{ position: "absolute", color: "white", left: 10, top: 10 }}
+            >
+              <Typography variant="body2">
+                PatientName: {imageData.PatientName}
+              </Typography>
+              <Typography variant="body2">
+                PatientBirthDate: {imageData.CreatedDate}
+              </Typography>
+            </Box>
+            <Box
+              sx={{ position: "absolute", color: "white", right: 10, top: 10 }}
+            >
+              <Typography variant="body2">
+                StudyName: {imageData.StudyName}
+              </Typography>
+              <Typography variant="body2">
+                SeriesName: {imageData.SeriesName}
+              </Typography>
+            </Box>
+          </>
+        )}
         <Box
           sx={{
             maxWidth: "80vw",
@@ -89,32 +106,50 @@ export default function Viewer({
             alignItems: "center",
           }}
         >
-          <img
-            src={imageUrl}
-            alt="Viewer"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-            }}
-          />
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="Viewer"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
         </Box>
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 10,
-            left: 10,
-            color: "white",
-          }}
-        >
-          <Typography variant="body2">
-            Image: {`${currentImageIndex + 1} / ${thumbnails.length}`}
-          </Typography>
-        </Box>
-        <Box sx={{ position: "absolute", color: "white", right: 10, bottom: 10 }}>
-          <Typography variant="body2">StudyDate: {imageData.StudyDate}</Typography>
-          <Typography variant="body2">Modality: {imageData.ModalityName}</Typography>
-        </Box>
+
+        {imageData && thumbnails && (
+          <>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 10,
+                left: 10,
+                color: "white",
+              }}
+            >
+              <Typography variant="body2">
+                Image: {`${currentImageIndex + 1} / ${thumbnails.length}`}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                color: "white",
+                right: 10,
+                bottom: 10,
+              }}
+            >
+              <Typography variant="body2">
+                StudyDate: {imageData.StudyDate}
+              </Typography>
+              <Typography variant="body2">
+                Modality: {imageData.ModalityName}
+              </Typography>
+            </Box>
+          </>
+        )}
       </Container>
     </Box>
   );

@@ -5,13 +5,15 @@ import axios from "axios";
 import FileUploadArea from "./FileUploadArea";
 
 export default function Upload() {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const headers = ["Patient Name", "Patient Birth Date", "Series Description"];
 
   const [series, setSeries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const GRAPHQL_URL = "http://localhost:4000/graphql";
+  const GRAPHQL_URL = `${apiUrl}/graphql`;
   const GET_SERIES = `
   query {
     files {
@@ -26,12 +28,13 @@ export default function Upload() {
   }
 `;
 
-
-
   async function fetchData() {
     try {
       setLoading(true);
       const response = await axios.post(GRAPHQL_URL, { query: GET_SERIES });
+      if(response.status != 200) {
+        throw new Error(`error with status:${response.status})`);
+      }
       const seriesData = response.data.data;
       if (seriesData) {
         const flattened = flattenData(seriesData);
@@ -68,10 +71,9 @@ export default function Upload() {
         return {};
       }
 
-     
       const flattened = {
-        ...file.series.patient, 
-        ...file.series, 
+        ...file.series.patient,
+        ...file.series,
       };
       if (flattened.CreatedDate) {
         flattened.CreatedDate = new Date(
@@ -82,8 +84,7 @@ export default function Upload() {
       return flattened;
     });
   }
-  if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
+
 
   return (
     <Container
@@ -102,7 +103,7 @@ export default function Upload() {
       >
         File Scanner
       </Typography>
-      <FileUploadArea handleFileUpload={handleFileUpload}/>
+      <FileUploadArea handleFileUpload={handleFileUpload} />
       <Typography
         variant="h4"
         align="center"
@@ -111,7 +112,13 @@ export default function Upload() {
       >
         Uploaded Files
       </Typography>
-      <PatientTable headers={headers} sampleData={series} />
+      {loading ? (
+        <CircularProgress />
+      ) : error ? (
+        <Typography color="error">{error}</Typography>
+      ) : (
+        <PatientTable headers={headers} sampleData={series} />
+      )}
     </Container>
   );
 }

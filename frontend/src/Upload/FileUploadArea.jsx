@@ -4,13 +4,16 @@ import { useDropzone } from "react-dropzone";
 import axios from "axios";
 
 export default function FileUploadArea({ handleFileUpload }) {
+
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const onDrop = useCallback((acceptedFiles) => {
     const formData = new FormData();
     acceptedFiles.forEach((file) => {
       formData.append("file", file);
     });
 
-    axios.post("http://localhost:4000/api/upload-dicom", formData)
+    axios.post(`${apiUrl}/api/upload-dicom`, formData)
     .then((response) => {
       console.log("File successfully uploaded:", response.data);
       handleFileUpload();
