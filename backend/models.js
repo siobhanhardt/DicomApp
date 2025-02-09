@@ -48,6 +48,7 @@ const File = sequelize.define("File", {
   FilePath: { type: DataTypes.STRING, allowNull: false },
   ImagePath: { type: DataTypes.STRING, allowNull: true },
   CreatedDate: { type: DataTypes.DATE, allowNull: true },
+  InstanceNumber: { type: DataTypes.INTEGER, allowNull: true }
 },
 {
     tableName: "files"
@@ -65,8 +66,8 @@ Modality.hasMany(Series, {foreignKey: "idModality"})
 Study.belongsTo(Patient, {foreignKey: "idPatient"});
 
 Series.belongsTo(Patient, { foreignKey: "idPatient", as: 'patient' });
-Series.belongsTo(Study, { foreignKey: "idStudy" });
-Series.belongsTo(Modality, { foreignKey: "idModality" });
+Series.belongsTo(Study, { foreignKey: "idStudy", as: "study" });
+Series.belongsTo(Modality, { foreignKey: "idModality", as: "modality" });
 
 File.belongsTo(Patient, { foreignKey: "idPatient" });
 File.belongsTo(Study, { foreignKey: "idStudy" });

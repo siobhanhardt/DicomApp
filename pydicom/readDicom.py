@@ -98,6 +98,7 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
         NumberOfFrames = getDicomValue(ds,'NumberOfFrames')
         StudyDescription = getDicomValue(ds,'StudyDescription')
         PatientBirthDate = format_date(getDicomValue(ds, 'PatientBirthDate'))
+        InstanceNumber = getDicomValue(ds, 'InstanceNumber')
         
         
         metadata = {
@@ -108,7 +109,8 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
         "StudyDate":StudyDate,
         "StudyDescription":StudyDescription,
         "FilePath":filepath,
-        "ImagePath":image_path
+        "ImagePath":image_path,
+        "InstanceNumber": InstanceNumber,
         }
     return metadata
 

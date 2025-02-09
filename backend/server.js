@@ -13,7 +13,7 @@ app.use(express.json());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "/app/uploads/"); 
+    cb(null, "/app/uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -28,7 +28,10 @@ const schema = buildSchema(`
         Name: String
         CreatedDate: String
     }
-
+    type Modality {
+      idModality: Int!
+      Name: String
+    }
     type Study {
         idStudy: ID!
         idPatient: Int!
@@ -43,6 +46,8 @@ const schema = buildSchema(`
         idModality: Int!
         SeriesName: String
         CreatedDate: String
+        study: Study
+        modality: Modality
         patient: Patient
     }
 
@@ -54,6 +59,7 @@ const schema = buildSchema(`
         FilePath: String
         ImagePath: String
         CreatedDate: String
+        InstanceNumber: Int
         series: Series
     }
 
@@ -84,6 +90,16 @@ const root = {
                 as: "patient",
                 attributes: ["idPatient", "Name", "CreatedDate"],
               },
+              {
+                model: Study,
+                as: "study",
+                attributes: ["StudyName", "CreatedDate"],
+              },
+              {
+                model: Modality,
+                as: "modality",
+                attributes: ["Name"],
+              },
             ],
           },
         ],
@@ -103,7 +119,17 @@ const root = {
     if (typeof idPatient === "number") {
       whereClause.idPatient = idPatient;
     }
-    return await File.findAll({ where: whereClause });
+    try {
+      const files = await File.findAll({
+        where: whereClause,
+        order: [["InstanceNumber", "ASC"]],
+      });
+
+      return files;
+    } catch (error) {
+      console.error("Error fetching images:", error);
+      return [];
+    }
   },
   modality: async () => await Modality.findAll(),
 };
@@ -115,7 +141,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
-      console.log("no files")
+      console.log("no files");
       return res
         .status(400)
         .json({ success: false, error: "No files uploaded" });
@@ -185,15 +211,20 @@ app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
             CreatedDate: dicomMetadata.StudyDate,
           });
         }
-
-        const file = await File.create({
-          idPatient: patient.idPatient,
-          idStudy: study.idStudy,
-          idSeries: series.idSeries,
-          FilePath: dicomMetadata.FilePath,
-          ImagePath: dicomMetadata.ImagePath,
-          CreatedDate: dicomMetadata.StudyDate,
+        let file = await File.findOne({
+          where: { ImagePath: dicomMetadata.ImagePath },
         });
+        if (!file) {
+          file = await File.create({
+            idPatient: patient.idPatient,
+            idStudy: study.idStudy,
+            idSeries: series.idSeries,
+            FilePath: dicomMetadata.FilePath,
+            ImagePath: dicomMetadata.ImagePath,
+            CreatedDate: dicomMetadata.StudyDate,
+            InstanceNumber: dicomMetadata.InstanceNumber,
+          });
+        }
       } catch (error) {
         console.error("Error processing DICOM file:", error);
         return res.status(500).json({ success: false, error: error.message });

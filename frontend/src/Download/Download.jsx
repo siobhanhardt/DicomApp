@@ -18,19 +18,29 @@ export default function Download({ handleViewerPageChange }) {
 
   const GRAPHQL_URL = "http://localhost:4000/graphql";
   const GET_FILES = `
-  query {
-    files {
-      FilePath
-      ImagePath
-   		series {
-        SeriesName
-        patient {
-          Name
-          CreatedDate
-        }
+query {
+  files {
+    FilePath
+    ImagePath
+    InstanceNumber
+    series {
+      idSeries
+      SeriesName
+      study {
+        CreatedDate
+        StudyName  
+      }
+      modality {
+        Name  
+      }
+      patient {
+        idPatient
+        Name
+        CreatedDate
       }
     }
   }
+}
 `;
 
   async function fetchGraphQL(query) {
@@ -51,6 +61,7 @@ export default function Download({ handleViewerPageChange }) {
 
         if (filesData) {
           const flattened = flattenData(filesData);
+          console.log(flattened);
           setFiles(flattened);
         } else {
           setError("Failed to fetch data.");
@@ -78,10 +89,15 @@ export default function Download({ handleViewerPageChange }) {
       }
 
       const flattened = {
-        ...file.series.patient, 
-        ...file.series, 
+        PatientName: file.series.patient.Name,
+        CreatedDate: file.series.patient.CreatedDate,
+        SeriesName: file.series.SeriesName,
+        StudyName: file.series.study.StudyName,
+        StudyDate: file.series.study.CreatedDate,
+        ModalityName: file.series.modality.Name,       
         FilePath: file.FilePath, 
-        ImagePath: file.ImagePath
+        ImagePath: file.ImagePath,
+        InstanceNumber: file.InstanceNumber
       };
 
       if (flattened.CreatedDate) {
@@ -89,7 +105,11 @@ export default function Download({ handleViewerPageChange }) {
           parseInt(flattened.CreatedDate)
         ).toLocaleDateString();
       }
-
+      if (flattened.StudyDate) {
+        flattened.StudyDate = new Date(
+          parseInt(flattened.StudyDate)
+        ).toLocaleDateString();
+      }
       delete flattened.patient;
 
       return flattened;

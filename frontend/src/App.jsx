@@ -11,6 +11,7 @@ function App() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState("upload");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageData, setImageData] = useState();
   const [ids, setIds] = useState([0, 0]);
   const [thumbnailImages, setThumbnailImages] = useState([]);
 
@@ -18,6 +19,7 @@ function App() {
   query images($idSeries: Int, $idPatient: Int) {
     images(idSeries: $idSeries, idPatient: $idPatient) {
       ImagePath
+      InstanceNumber
     }
   }
 `;
@@ -46,11 +48,11 @@ function App() {
     setOpen(!open);
   }
 
-  function handleViewerPageChange(imageUrl, ids) {
+  function handleViewerPageChange(imageUrl, data) {
+    setImageData(data);
     setPage("viewer");
-    console.log("viewer");
     setImageUrl(imageUrl);
-    setIds(ids);
+    setIds([data.idSeries, data.idPatient]);
   }
 
   function renderPage() {
@@ -65,6 +67,7 @@ function App() {
             imageUrl={imageUrl}
             thumbnails={thumbnailImages}
             onThumbnailClick={setImageUrl}
+            imageData={imageData}
           />
         );
       default:

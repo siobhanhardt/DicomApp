@@ -78,7 +78,6 @@ export default function Upload() {
           parseInt(flattened.CreatedDate)
         ).toLocaleDateString();
       }
-      delete flattened.patient;
 
       return flattened;
     });
