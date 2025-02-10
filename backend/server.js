@@ -11,6 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Storage for uploading images and .dcim files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "/app/uploads/");
@@ -22,6 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Defining Graphql data
 const schema = buildSchema(`
     type Patient {
         idPatient: ID!
@@ -71,7 +73,7 @@ const schema = buildSchema(`
         images(idSeries: Int, idPatient: Int): [File]
     }
 `);
-
+// Defining resolvers
 const root = {
   patients: async () => await Patient.findAll(),
   studies: async () => await Study.findAll(),
@@ -134,25 +136,23 @@ const root = {
   modality: async () => await Modality.findAll(),
 };
 
-app.use("/graphql", graphqlHTTP({ schema, rootValue: root, graphiql: true }));
+app.use("/graphql", graphqlHTTP({ schema, rootValue: root, graphiql: true })); // Creating graphql endpoint
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Creating end point for uploading files
 
-app.post("/api/upload-dicom", upload.array("file"), async (req, res) => {
+app.post("/api/upload-dicom", upload.array("file"), async (req, res) => { // Creating endpoint for processing and uploading dicom data
   try {
     if (!req.files || req.files.length === 0) {
-      console.log("no files");
       return res
         .status(400)
         .json({ success: false, error: "No files uploaded" });
     }
     for (const file of req.files) {
-      const filePath = path.join(__dirname, "uploads", file.filename);
-      console.log(filePath);
+      const filePath = path.join(__dirname, "uploads", file.filename); 
 
       try {
         const response = await axios.post(
-          "http://python-service:5000/process-dicom",
+          "http://python-service:5000/process-dicom", // Sending to python service to process the data
           {
             filePath: filePath,
           }

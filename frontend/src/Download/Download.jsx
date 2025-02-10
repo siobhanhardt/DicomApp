@@ -50,7 +50,7 @@ query {
       const response = await axios.post(GRAPHQL_URL, { query });
       return response.data.data;
     } catch (error) {
-      console.error("GraphQL Request Error:", error);
+      console.log("GraphQL Request Error:", error);
       return null;
     }
   }
@@ -89,7 +89,7 @@ query {
         return {};
       }
 
-      const flattened = {
+      const flattened = { // Flattening data so it is easier to manage, most of this is for passing to viewer page
         PatientName: file.series.patient.Name,
         CreatedDate: file.series.patient.CreatedDate,
         SeriesName: file.series.SeriesName,

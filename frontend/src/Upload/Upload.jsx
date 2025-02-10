@@ -51,15 +51,15 @@ export default function Upload() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, []); 
 
-  async function handleFileUpload() {
+  async function handleFileUpload() { // Re pull data with slight delay when file is uploaded
     setTimeout(() => {
       fetchData();
     }, 500);
   }
 
-  function flattenData(data) {
+  function flattenData(data) { // flattening data so it can be easily iterated over in table
     if (!data || !Array.isArray(data.files)) {
       console.error("Invalid data format. Expected 'files' array.");
       return [];
@@ -75,7 +75,7 @@ export default function Upload() {
         ...file.series.patient,
         ...file.series,
       };
-      if (flattened.CreatedDate) {
+      if (flattened.CreatedDate) { // Formatting date
         flattened.CreatedDate = new Date(
           parseInt(flattened.CreatedDate)
         ).toLocaleDateString();

@@ -1,5 +1,4 @@
 import numpy as np
-import requests
 from datetime import datetime
 from PIL import Image
 from numpy import maximum, ndarray
@@ -9,24 +8,8 @@ from pydicom.valuerep import PersonName
 import matplotlib.pyplot as plt
 import os
 
-API_URL = "http://localhost:4000/api/upload-dicom"
 
-def send_to_nodejs(filepath):
-
-    metadata = convert_dicom(filepath)
-
-    print("Extracted Metadata Before Sending:")
-    for key, value in metadata.items():
-        print(f"{key}: {value}")
-
-    response = requests.post(API_URL, json=metadata)
-    
-    if response.status_code == 200:
-        print("Successfully uploaded to Node.js")
-    else:
-        print(f"Error: {response.text}")
-
-def format_date(dicom_date):
+def format_date(dicom_date): # Formatting multiple date types
     formats = [
         "%Y%m%d",  
         "%m/%Y",    
@@ -113,8 +96,3 @@ def convert_dicom(filepath, output_type="json", with_metadata=True):
         "InstanceNumber": InstanceNumber,
         }
     return metadata
-
-
-if __name__ == "__main__":
-    filepath = "G:\DicomApp\pydicom\MR-IMG-301-1-134.dcm"  # Replace with the actual file path
-    send_to_nodejs(filepath)

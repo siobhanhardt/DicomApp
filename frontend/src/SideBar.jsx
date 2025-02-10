@@ -15,7 +15,7 @@ export default function SideBar({ open, setPage }) {
           <ListItem key={text} disablePadding >
             <ListItemButton
               onClick={() => {
-                handlePageChange(text);
+                handlePageChange(text); 
               }}
               sx={{ display: "flex", alignItems: "center", mx: 'auto', px: '20px' }}
             >

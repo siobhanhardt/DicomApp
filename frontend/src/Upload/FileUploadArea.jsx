@@ -15,8 +15,7 @@ export default function FileUploadArea({ handleFileUpload }) {
 
     axios.post(`${apiUrl}/api/upload-dicom`, formData)
     .then((response) => {
-      console.log("File successfully uploaded:", response.data);
-      handleFileUpload();
+      handleFileUpload(); // Trigger re pull of data
     })
     .catch((error) => {
       console.error("Error uploading file:", error);

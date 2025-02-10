@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./db");
 
+// This file determines the structure and relationships of the database
+
 const Patient = sequelize.define("Patient", {
   idPatient: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   Name: { type: DataTypes.STRING, allowNull: true },

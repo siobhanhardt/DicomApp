@@ -1,24 +1,19 @@
 import { Box, Container, Typography } from "@mui/material";
 import { useState } from "react";
 
-export default function Viewer({
-  imageUrl,
-  thumbnails,
-  onThumbnailClick,
-  imageData,
-}) {
+export default function Viewer({ imageUrl, thumbnails, onThumbnailClick, imageData }) {
   const apiUrl = import.meta.env.VITE_API_URL;
-
+ 
+  // Sets the current image index by comparing the imageUrl passed when clicking on view button to imageurl in thumbnail array
   const [currentImageIndex, setCurrentImageIndex] = useState(
     thumbnails.findIndex(
       (thumb) =>
         `${apiUrl}/uploads/${thumb.ImagePath.split("/").pop()}` === imageUrl
     )
   );
-  console.log(thumbnails);
-  const handleThumbnailClick = (imagePath, index) => {
-    setCurrentImageIndex(index); // Update the current image index
-    onThumbnailClick(imagePath); // Call the provided onThumbnailClick callback
+  function handleThumbnailClick(imagePath, index) {
+    setCurrentImageIndex(index); 
+    onThumbnailClick(imagePath); 
   };
 
   return (
